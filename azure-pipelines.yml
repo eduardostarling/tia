@@ -1,0 +1,136 @@
+trigger:
+- master
+
+jobs:
+  # build job - only runs on latest supported python
+  # version and publishes artifacts for further jobs
+  - job: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      matrix:
+        Python38:
+          python.version: '3.8'
+    steps:
+    - task: UsePythonVersion@0
+      displayName: 'Use Python $(python.version)'
+      inputs:
+        versionSpec: '$(python.version)'
+
+    - script: |
+        python -m pip install --upgrade pip
+        python -m pip install pipenv
+        pipenv install --dev
+      displayName: 'Install dependencies for version $(python.version)'
+
+    - script: |
+        pipenv run docs
+      displayName: 'Build Documentation'
+
+    - script: |
+        pipenv run build
+      displayName: 'Build Python Wheel'
+
+    - script: |
+        pipenv lock -r --dev > requirements.txt
+      displayName: 'Lock dependencies to requirements.txt'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish requirements.txt'
+      inputs:
+        pathtoPublish: '$(System.DefaultWorkingDirectory)/requirements.txt'
+        artifactName: PackageRequirements
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Python Wheel'
+      inputs:
+        pathtoPublish: '$(System.DefaultWorkingDirectory)/dist'
+        artifactName: PythonWheel
+
+  - job: Test
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      matrix:
+        Python37:
+          python.version: '3.7'
+        Python38:
+          python.version: '3.8'
+      maxParallel: 2
+    dependsOn: Build
+    condition: succeeded('Build')
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+      displayName: 'Use Python $(python.version)'
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download requirements.txt'
+      inputs:
+        artifactName: PackageRequirements
+        downloadPath: $(System.DefaultWorkingDirectory)
+
+    - script: |
+        python -m pip install --upgrade pip
+        python -m pip install -r PackageRequirements/requirements.txt
+      displayName: 'Install dependencies for version $(python.version)'
+
+    - script: |
+        python tests/test.py
+      displayName: 'Run tests on version $(python.version)'
+
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/test-*.xml'
+        testRunTitle: 'Publish test results for Python $(python.version)'
+
+    - task: PublishCodeCoverageResults@1
+      inputs:
+        codeCoverageTool: Cobertura
+        summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage.xml'
+        reportDirectory: '$(System.DefaultWorkingDirectory)/htmlcov'
+
+  - job: Publish
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      matrix:
+        Python38:
+          python.version: '3.8'
+    dependsOn:
+      - Build
+      - Test
+    condition: and(succeeded('Test'), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    steps:
+    - checkout: none
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+      displayName: 'Use Python $(python.version)'
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Python Wheel'
+      inputs:
+        artifactName: PythonWheel
+        downloadPath: $(System.DefaultWorkingDirectory)
+
+    - script: |
+        python -m pip install --upgrade pip
+        python -m pip install wheel
+        python -m pip install twine
+      displayName: 'Install dependencies for version $(python.version)'
+
+    - task: TwineAuthenticate@1
+      displayName: 'Twine Authenticate'
+      inputs:
+        pythonUploadServiceConnection: tia-framework
+
+    # the sed command below fixes the wrong username=build introduced
+    # by the TwineAuthenticate command above
+    - script: |
+        sed -i 's/username=build/username=__token__/g' $(PYPIRC_PATH)
+        python -m twine upload -r tia-framework --config-file $(PYPIRC_PATH) PythonWheel/*
+      displayName: "Publish to PyPI"
