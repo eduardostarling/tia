@@ -1,4 +1,5 @@
 from typing import TypeVar, Type
+from functools import wraps
 
 from dataclasses_json import DataClassJsonMixin
 from quart import request
@@ -14,6 +15,7 @@ async def _map(type_: Type[MapType]) -> MapType:
 
 def dtomapper(type_: Type[MapType]):
     def decorator(func):
+        @wraps(func)
         async def wrapper(*args, **kwargs):
             return await func(*args, **kwargs, dto=(await _map(type_)))
         return wrapper

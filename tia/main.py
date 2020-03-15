@@ -2,6 +2,7 @@ from quart import Quart
 from tortoise.contrib.quart import register_tortoise
 
 from tia.controllers.tests import TestController
+from tia.controllers.projects import ProjectController
 
 
 app = Quart(__name__)
@@ -10,6 +11,7 @@ CONNECTION_STRING = 'mysql://root:root@172.17.0.2/tia'
 
 def register_controllers(app: Quart):
     TestController(app=app)
+    ProjectController(app=app)
 
 
 def init_database(app: Quart):

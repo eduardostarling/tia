@@ -7,7 +7,7 @@ class Project(Model):
         table = 'projects'
 
     id = fields.IntField(pk=True)
-    name = fields.CharField(max_length=255)
+    name = fields.CharField(max_length=255, unique=True)
 
 
 class DevelopmentStream(Model):

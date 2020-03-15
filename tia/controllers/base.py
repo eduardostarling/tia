@@ -40,4 +40,4 @@ class BaseController(metaclass=BaseControllerMeta):
         for route in self._routes:
             func = getattr(self, route)
             args, kwargs = getattr(func, ROUTE_ATTR)
-            self.app.route(*args, **kwargs)(getattr(self, route))
+            self.app.route(*args, **kwargs)(func)
