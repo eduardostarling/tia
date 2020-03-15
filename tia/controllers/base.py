@@ -2,7 +2,6 @@ from typing import Set
 from functools import wraps
 
 from quart import Quart
-from sqlalchemy.orm import Session
 
 
 ROUTE_ATTR = '_route'
@@ -32,11 +31,9 @@ class BaseControllerMeta(type):
 class BaseController(metaclass=BaseControllerMeta):
     _routes: Set[str]
     app: Quart
-    session: Session
 
-    def __init__(self, app: Quart, session: Session):
+    def __init__(self, app: Quart):
         self.app = app
-        self.session = session
         self.__register_routes()
 
     def __register_routes(self):

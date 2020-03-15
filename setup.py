@@ -18,10 +18,10 @@ setuptools.setup(
     packages=['tia'],
     install_requires=[
         'quart',
-        'sqlalchemy',
-        'sqlalchemy_aio',
-        'pymysql',
-        'cryptography'
+        'tortoise-orm',
+        'aiomysql',
+        'cryptography',
+        'dataclasses_json'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

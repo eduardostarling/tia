@@ -1,43 +1,34 @@
-from typing import Tuple
-import asyncio
-
 from quart import Quart
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy_aio import ASYNCIO_STRATEGY
-from sqlalchemy_aio.engine import AsyncioEngine
+from tortoise.contrib.quart import register_tortoise
 
-from tia.models.base import Base
 from tia.controllers.tests import TestController
 
-CONNECTION_STRING = 'mysql+pymysql://root:root@172.17.0.2/tia'
+
+app = Quart(__name__)
+CONNECTION_STRING = 'mysql://root:root@172.17.0.2/tia'
 
 
-def register_controllers(app: Quart, session: Session):
-    TestController(app=app, session=session)
+def register_controllers(app: Quart):
+    TestController(app=app)
 
 
-async def get_database_engine(migrate=False) -> Tuple[AsyncioEngine, Session]:
-    engine: AsyncioEngine = create_engine(CONNECTION_STRING, strategy=ASYNCIO_STRATEGY)
+def init_database(app: Quart):
+    register_tortoise(
+        app,
+        db_url=CONNECTION_STRING,
+        modules={
+            'models': [
+                'tia.models.tests',
+                'tia.models.projects',
+                'tia.models.results'
+            ]
+        },
+        generate_schemas=False
+    )
 
-    if migrate:
-        await engine.run_in_thread(Base.metadata.create_all, engine.sync_engine)
 
-    await engine.connect()  # type: ignore
-    session = sessionmaker(bind=engine)
-    return engine, session()
-
-
-async def main():
-    db_engine, session = await get_database_engine(migrate=True)
-
-    app = Quart(__name__)
-    register_controllers(app, session)
-
-    try:
-        await app.run_task()
-    finally:
-        await db_engine.close()
+init_database(app)
+register_controllers(app)
 
 if __name__ == "__main__":
-    asyncio.run(main(), debug=True)
+    app.run(debug=True)
