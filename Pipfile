@@ -10,9 +10,11 @@ flake8 = "*"
 mypy = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
+sqlalchemy-stubs = "*"
 
 [packages]
 e1839a8 = {editable = true,path = "."}
+tia-framework = {editable = true,path = "."}
 
 [scripts]
 test = "python tests/test.py"

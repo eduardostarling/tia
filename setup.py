@@ -16,7 +16,13 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url=git_url,
     packages=['tia'],
-    install_requires=['quart'],
+    install_requires=[
+        'quart',
+        'sqlalchemy',
+        'sqlalchemy_aio',
+        'pymysql',
+        'cryptography'
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
