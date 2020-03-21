@@ -1,10 +1,14 @@
 from typing import List, Optional
 
 from tortoise.transactions import in_transaction
-from tortoise.queryset import QuerySet
 
 from tia.mappers.projects import ProjectDTO, DevelopmentStreamDTO
 from tia.models.projects import Project, DevelopmentStream
+from tia.repositories.projects import ProjectRepository, DevelopmentStreamRepository
+
+
+class ProjectNotFound(Exception):
+    pass
 
 
 class ProjectExists(Exception):
@@ -12,42 +16,46 @@ class ProjectExists(Exception):
 
 
 class ProjectService:
+    project_repository: ProjectRepository
+    devstream_repository: DevelopmentStreamRepository
 
-    def _query_get_project(self, project_name: str) -> QuerySet[Project]:
-        return Project.filter(name=project_name).prefetch_related('streams')
+    def __init__(
+        self,
+        project_repository: Optional[ProjectRepository] = None,
+        devstream_repository: Optional[DevelopmentStreamRepository] = None
+    ):
+        self.project_repository = project_repository or ProjectRepository()
+        self.devstream_repository = devstream_repository or DevelopmentStreamRepository()
 
     async def get_projects(self) -> List[Project]:
-        projects: List[Project] = await Project.all()
-        return projects
+        return await self.project_repository.get_all()
 
     async def get_project(self, name: str) -> Project:
-        project: Project = await self._query_get_project(name).first()
+        project = await self.project_repository.get(name)
+        if not project:
+            raise ProjectNotFound()
         return project
 
     async def add_project(self, project_dto: ProjectDTO) -> Project:
         async with in_transaction():
-            count = await self._query_get_project(project_dto.name).count()
-            if count:
-                raise ProjectExists("Project `{project_dto.name}` already exists.")
+            project: Optional[Project] = await self.project_repository.get(project_dto.name)
+            if project:
+                raise ProjectExists()
 
-            await Project.create(name=project_dto.name)
-
-            project = await self._query_get_project(project_dto.name).first()
-            return project
+            return await self.project_repository.create(project_dto)
 
     async def add_stream(self, project_name: str, dto: DevelopmentStreamDTO) -> DevelopmentStream:
         async with in_transaction():
-            project: Project = await self._query_get_project(project_name).first()
-            base_stream: Optional[DevelopmentStream] = None
-            stream: Optional[DevelopmentStream] = None
+            project: Optional[Project] = await self.project_repository.get(project_name)
+            if not project:
+                raise ProjectNotFound()
 
+            base_stream: Optional[DevelopmentStream] = None
             for projstream in project.streams:
                 if projstream.name == dto.name:
-                    stream = projstream
+                    return projstream
+
                 if projstream.name == dto.base_stream:
                     base_stream = projstream
 
-            if not stream:
-                stream = await DevelopmentStream.create(name=dto.name, project=project, base_stream=base_stream)
-
-            return stream
+            return await self.devstream_repository.create(dev_stream_dto=dto, project=project, base_stream=base_stream)

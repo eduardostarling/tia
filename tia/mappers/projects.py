@@ -36,5 +36,6 @@ class ProjectDTO(DataClassJsonMixin):
 
     @staticmethod
     async def _from_model(model: Project) -> ProjectDTO:
-        streams = [await DevelopmentStreamDTO._from_model(x) for x in await model.streams] if model.streams else []
+        model_streams = await model.streams
+        streams = [await DevelopmentStreamDTO._from_model(x) for x in model_streams] if model_streams else []
         return ProjectDTO(id=model.id, name=model.name, streams=streams)
