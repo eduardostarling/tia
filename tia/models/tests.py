@@ -4,8 +4,19 @@ from tortoise import fields
 
 class TestDefinition(Model):
     class Meta:
-        table = 'definitions'
+        table = 'definition'
 
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255)
     streams = fields.ManyToManyField('models.DevelopmentStream', related_name='tests', through='definition_stream')
+
+
+class Metadata(Model):
+    class Meta:
+        table = 'metadata'
+        unique_together = ('key', 'definition', 'stream')
+
+    key = fields.CharField(max_length=255)
+    value = fields.TextField()
+    definition = fields.ForeignKeyField('models.TestDefinition')
+    stream = fields.ForeignKeyField('models.DevelopmentStream')

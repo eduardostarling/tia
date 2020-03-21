@@ -1,21 +1,15 @@
 from tortoise.models import Model
 from tortoise import fields
 
-from enum import IntEnum
 
-
-class StatusEnum(IntEnum):
-    pass
-
-
-class TestResult(Model):
+class TestCoverage(Model):
     class Meta:
-        table = 'results'
-        unique_together = ("definition", "stream")
+        table = 'result'
+        unique_together = ('definition', 'stream', 'test_file')
 
     definition = fields.ForeignKeyField('models.TestDefinition')
     stream = fields.ForeignKeyField('models.DevelopmentStream')
-    status = fields.IntEnumField(StatusEnum)
+    test_file = fields.ForeignKeyField('models.SourceCodeFile')
 
 
 class SourceCodeFile(Model):
@@ -23,4 +17,3 @@ class SourceCodeFile(Model):
         table = 'file'
 
     path = fields.TextField()
-    results = fields.ManyToManyField('models.TestResult', related_name='files', through='file_result')

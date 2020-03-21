@@ -7,10 +7,10 @@ from tia.mappers.projects import ProjectDTO, DevelopmentStreamDTO
 from tia.models.projects import Project
 from tia.services.projects import ProjectService
 
-PROJECTS_ROUTE = "/projects"
-PROJECT_ROUTE = f"{PROJECTS_ROUTE}/<project_name>"
-STREAMS_ROUTE = f"{PROJECT_ROUTE}/streams"
-STREAM_ROUTE = f"{STREAMS_ROUTE}/<stream_name>"
+PROJECTS_ROUTE = '/projects'
+PROJECT_ROUTE = f'{PROJECTS_ROUTE}/<project_name>'
+STREAMS_ROUTE = f'{PROJECT_ROUTE}/streams'
+STREAM_ROUTE = f'{STREAMS_ROUTE}/<stream_name>'
 
 
 class ProjectController(BaseController):
@@ -24,17 +24,17 @@ class ProjectController(BaseController):
         project_dto = await ProjectDTO._from_model(project)
         return project_dto.to_json()
 
-    @route(f"{PROJECTS_ROUTE}", methods=['GET'])
+    @route(f'{PROJECTS_ROUTE}', methods=['GET'])
     async def projects(self) -> str:
         projects: List[Project] = await self.project_service.get_projects()
-        return json.dumps({"projects": [x.name for x in projects]})
+        return json.dumps({'projects': [x.name for x in projects]})
 
-    @route(f"{PROJECT_ROUTE}", methods=['GET'])
+    @route(f'{PROJECT_ROUTE}', methods=['GET'])
     async def project_details(self, project_name) -> str:
         project = await self.project_service.get_project(project_name)
         return await self._from_project(project)
 
-    @route(f"{PROJECTS_ROUTE}", methods=['POST'])
+    @route(f'{PROJECTS_ROUTE}', methods=['POST'])
     @dtomapper(ProjectDTO)
     async def add_project(self, dto: ProjectDTO) -> str:
         project = await self.project_service.add_project(dto)

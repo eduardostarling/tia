@@ -32,5 +32,5 @@ def init_database(app: Quart):
 init_database(app)
 register_controllers(app)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)

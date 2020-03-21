@@ -4,7 +4,7 @@ from tortoise import fields
 
 class Project(Model):
     class Meta:
-        table = 'projects'
+        table = 'project'
 
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255, unique=True)
@@ -12,7 +12,7 @@ class Project(Model):
 
 class DevelopmentStream(Model):
     class Meta:
-        table = 'devstreams'
+        table = 'devstream'
 
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255)
