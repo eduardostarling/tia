@@ -8,7 +8,7 @@ from tia.models.projects import Project, DevelopmentStream
 
 class ProjectRepository:
 
-    def _get_query(self, project_name: str) -> QuerySet[Project]:
+    def _query_project(self, project_name: str) -> QuerySet[Project]:
         return Project.filter(name=project_name).prefetch_related('streams')
 
     async def get_all(self) -> List[Project]:
@@ -16,7 +16,7 @@ class ProjectRepository:
         return projects
 
     async def get(self, project_name: str) -> Optional[Project]:
-        return await self._get_query(project_name).get_or_none()
+        return await self._query_project(project_name).get_or_none()
 
     async def create(self, project_dto: ProjectDTO) -> Project:
         return await Project.create(name=project_dto.name)
@@ -29,6 +29,22 @@ class DevelopmentStreamRepository:
 
     async def get(self, stream_name: str, project_name: str) -> Optional[DevelopmentStream]:
         return await self._query_stream(stream_name, project_name).get_or_none()
+
+    async def get_ordered_hierarchy(self, stream_name: str, project_name: str) -> List[DevelopmentStream]:
+        all_streams = await DevelopmentStream.filter(project__name=project_name).prefetch_related('base_stream').all()
+        streams = []
+
+        def seek_stream(name: str):
+            stream: DevelopmentStream
+
+            for stream in all_streams:
+                if stream.name == stream_name:
+                    streams.append(stream)
+                    if stream.base_stream:
+                        seek_stream(stream.base_stream.name)
+                    break
+
+        return streams
 
     async def create(
         self, dev_stream_dto: DevelopmentStreamDTO, project: Project, base_stream: Optional[DevelopmentStream]

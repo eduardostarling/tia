@@ -15,6 +15,10 @@ class ProjectExists(Exception):
     pass
 
 
+class DevStreamNotFound(Exception):
+    pass
+
+
 class ProjectService:
     project_repository: ProjectRepository
     devstream_repository: DevelopmentStreamRepository

@@ -17,13 +17,13 @@ class TestController(BaseController):
         super().__init__(app)
         self.test_service = test_service or TestService()
 
-    @route(f'{TESTS_ROUTE}', methods=['GET'])
+    @route(TESTS_ROUTE, methods=['GET'])
     async def tests(self, project_name, stream_name) -> str:
         results = await self.test_service.get_tests(project_name, stream_name)
         results_dto = {'tests': [TestDefinitionDTO._from_model(x).to_dict() for x in results]}
         return json.dumps(results_dto)
 
-    @route(f'{TESTS_ROUTE}', methods=['POST'])
+    @route(TESTS_ROUTE, methods=['POST'])
     @dtomapper(TestDefinitionDTO)
     async def add_test(self, project_name, stream_name, dto: TestDefinitionDTO):
         testdef = await self.test_service.add_test(project_name, stream_name, dto)

@@ -6,13 +6,10 @@ from tia.mappers.tests import TestDefinitionDTO
 from tia.models.tests import TestDefinition
 from tia.repositories.projects import DevelopmentStreamRepository
 from tia.repositories.tests import TestRepository
+from tia.services.projects import DevStreamNotFound
 
 
 class TestExists(Exception):
-    pass
-
-
-class DevStreamNotFound(Exception):
     pass
 
 

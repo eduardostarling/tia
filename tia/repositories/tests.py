@@ -21,7 +21,9 @@ class TestRepository:
         return await self._query_project_stream_tests(project_name, stream_name).get_or_none(name=test_def_name)
 
     async def create(self, stream: DevelopmentStream, dto: TestDefinitionDTO) -> TestDefinition:
-        testdef = await TestDefinition.create(name=dto.name)
+        testdef_add = await TestDefinition.get_or_create(name=dto.name)
+        testdef = testdef_add[0]
+
         await testdef.streams.add(stream)
 
         return testdef

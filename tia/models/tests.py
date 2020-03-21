@@ -18,5 +18,6 @@ class Metadata(Model):
 
     key = fields.CharField(max_length=255)
     value = fields.TextField()
+    inherit = fields.BooleanField(default=True)
     definition = fields.ForeignKeyField('models.TestDefinition')
     stream = fields.ForeignKeyField('models.DevelopmentStream')
