@@ -6,6 +6,18 @@ from tia.mappers.projects import ProjectDTO, DevelopmentStreamDTO
 from tia.models.projects import Project, DevelopmentStream
 
 
+class ProjectNotFound(Exception):
+    pass
+
+
+class ProjectExists(Exception):
+    pass
+
+
+class DevStreamNotFound(Exception):
+    pass
+
+
 class ProjectRepository:
 
     def _query_project(self, project_name: str) -> QuerySet[Project]:
@@ -38,12 +50,15 @@ class DevelopmentStreamRepository:
             stream: DevelopmentStream
 
             for stream in all_streams:
-                if stream.name == stream_name:
+                if stream.name == name:
                     streams.append(stream)
                     if stream.base_stream:
                         seek_stream(stream.base_stream.name)
                     break
+            else:
+                raise DevStreamNotFound()
 
+        seek_stream(stream_name)
         return streams
 
     async def create(

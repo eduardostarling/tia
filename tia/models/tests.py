@@ -10,6 +10,9 @@ class TestDefinition(Model):
     name = fields.CharField(max_length=255)
     streams = fields.ManyToManyField('models.DevelopmentStream', related_name='tests', through='definition_stream')
 
+    def __hash__(self):
+        return hash(self.name)
+
 
 class Metadata(Model):
     class Meta:

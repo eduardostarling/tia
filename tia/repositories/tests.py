@@ -7,6 +7,10 @@ from tia.models.projects import DevelopmentStream
 from tia.models.tests import TestDefinition
 
 
+class TestExists(Exception):
+    pass
+
+
 class TestRepository:
 
     def _query_project_stream_tests(self, project_name: str, stream_name: str) -> QuerySet[TestDefinition]:

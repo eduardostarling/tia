@@ -24,6 +24,10 @@ class TestCoverageController(BaseController):
         return ""
 
     @route(f'{FILE_ROUTE}/<path:path>', methods=['GET'])
-    async def get_tests_for_file(self, project_name: str, stream_name: str, path: str):
-        tests = await self.coverage_service.get_tests_for_file(project_name, stream_name, path)
+    async def get_tests_for_file(self, project_name: str, stream_name: str, path: str, hierarchy: bool = False):
+        tests = await self.coverage_service.get_tests_for_file(project_name, stream_name, path, hierarchy)
         return tests.to_json()
+
+    @route(f'{FILE_ROUTE}/hierarchy/<path:path>', methods=['GET'])
+    async def get_tests_for_file_hierarchy(self, project_name: str, stream_name: str, path: str):
+        return await self.get_tests_for_file(project_name, stream_name, path, hierarchy=True)

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 
 from tia.mappers.coverage import BulkCoverageDTO
 from tia.models.coverage import TestCoverage, SourceCodeFile
@@ -30,13 +30,13 @@ class TestCoverageRepository:
                 await TestCoverage.get_or_create(
                     definition=definition, stream=stream, source_file=source_file)
 
-    async def get_tests_for_file(self, stream: DevelopmentStream, path: str) -> List[TestDefinition]:
+    async def get_tests_for_file(self, stream: DevelopmentStream, path: str) -> Set[TestDefinition]:
         coverages = await TestCoverage.filter(
             stream=stream,
             source_file__path=path,
         ).prefetch_related('definition').all()
 
-        definitions: List[TestDefinition] = [x.definition for x in coverages]
+        definitions: Set[TestDefinition] = set(x.definition for x in coverages)
         return definitions
 
 # Query for joining all tables

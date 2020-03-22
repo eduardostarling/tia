@@ -4,19 +4,12 @@ from tortoise.transactions import in_transaction
 
 from tia.mappers.projects import ProjectDTO, DevelopmentStreamDTO
 from tia.models.projects import Project, DevelopmentStream
-from tia.repositories.projects import ProjectRepository, DevelopmentStreamRepository
-
-
-class ProjectNotFound(Exception):
-    pass
-
-
-class ProjectExists(Exception):
-    pass
-
-
-class DevStreamNotFound(Exception):
-    pass
+from tia.repositories.projects import (
+    DevelopmentStreamRepository,
+    ProjectExists,
+    ProjectNotFound,
+    ProjectRepository
+)
 
 
 class ProjectService:
